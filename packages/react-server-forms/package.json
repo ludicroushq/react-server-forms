@@ -1,0 +1,59 @@
+{
+  "name": "react-server-forms",
+  "version": "0.0.0",
+  "description": "an easy way to manage and render forms with react server functions",
+  "exports": {
+    "./client": {
+      "types": "./dist/client/index.d.ts",
+      "require": "./dist/client/index.cjs",
+      "import": "./dist/client/index.js"
+    },
+    "./server": {
+      "types": "./dist/server/index.d.ts",
+      "require": "./dist/server/index.cjs",
+      "import": "./dist/server/index.js"
+    },
+    "./schema": {
+      "types": "./dist/schema/index.d.ts",
+      "require": "./dist/schema/index.cjs",
+      "import": "./dist/schema/index.js"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ludicroushq/react-server-forms.git"
+  },
+  "keywords": [
+    "react",
+    "server",
+    "forms"
+  ],
+  "bugs": {
+    "url": "https://github.com/ludicroushq/react-server-forms/issues"
+  },
+  "homepage": "https://github.com/ludicroushq/react-server-forms#readme",
+  "devDependencies": {
+    "@types/lodash": "^4.17.14",
+    "@types/react": "^19.0.7",
+    "@types/react-dom": "^19.0.3",
+    "tsup": "^8.3.5"
+  },
+  "dependencies": {
+    "@conform-to/react": "^1.2.2",
+    "@conform-to/zod": "^1.2.2",
+    "lodash": "^4.17.21",
+    "typescript": "^5.7.3"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "zod": "^3.0.0"
+  }
+}

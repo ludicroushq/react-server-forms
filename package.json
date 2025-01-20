@@ -1,44 +1,37 @@
 {
-  "name": "react-server-forms",
-  "version": "0.0.0",
-  "description": "an easy way to manage and render forms with react server functions",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "require": "./dist/index.cjs",
-      "import": "./dist/index.js"
-    }
-  },
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "private": true,
+  "type": "module",
   "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch"
+    "build": "turbo build",
+    "ci:test": "concurrently pnpm:ci:test:*",
+    "ci:test:lint": "eslint .",
+    "ci:test:pretty": "prettier --check .",
+    "dev": "turbo dev  --filter 'react-server-forms'",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "lint": "turbo lint",
+    "prepare": "husky",
+    "test": "concurrently pnpm:test:*",
+    "test:lint": "eslint --fix .",
+    "test:pretty": "prettier --write ."
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/ludicroushq/react-server-forms.git"
-  },
-  "keywords": [
-    "react",
-    "server",
-    "forms"
-  ],
-  "bugs": {
-    "url": "https://github.com/ludicroushq/react-server-forms/issues"
-  },
-  "homepage": "https://github.com/ludicroushq/react-server-forms#readme",
   "devDependencies": {
-    "@types/react": "^19.0.7",
-    "@types/react-dom": "^19.0.3",
-    "tsup": "^8.3.5"
+    "concurrently": "^9.1.2",
+    "eslint": "^9.18.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.4.1",
+    "neostandard": "^0.12.0",
+    "prettier": "^3.2.5",
+    "turbo": "^2.3.3",
+    "typescript": "5.5.4"
   },
-  "dependencies": {
-    "typescript": "^5.7.3"
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=18"
   },
-  "peerDependencies": {
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+  "lint-staged": {
+    "*": [
+      "eslint --fix",
+      "prettier --ignore-unknown --write"
+    ]
   }
 }

@@ -28,7 +28,7 @@ type SelectProps = {
 
 type Renderer<Props> = (args: Props) => JSX.Element;
 
-export interface FormRendererOptions {
+export type FormRendererOptions = {
   Text?: Renderer<BaseRenderArgs & InputProps>;
   Textarea?: Renderer<BaseRenderArgs & TextareaProps>;
   Number?: Renderer<BaseRenderArgs & InputProps>;
@@ -36,8 +36,10 @@ export interface FormRendererOptions {
   Checkbox?: Renderer<BaseRenderArgs & InputProps>;
   Select?: Renderer<BaseRenderArgs & SelectProps>;
   Submit: Renderer<SubmitProps>;
-}
+};
 
-export function createFormRenderer(options: FormRendererOptions) {
+export type FormRenderer = FormRendererOptions;
+
+export function createFormRenderer(options: FormRendererOptions): FormRenderer {
   return options;
 }

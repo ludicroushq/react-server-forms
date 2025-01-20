@@ -2,6 +2,7 @@
   "name": "react-server-forms",
   "version": "0.0.0",
   "description": "an easy way to manage and render forms with react server functions",
+  "type": "module",
   "exports": {
     "./client": {
       "types": "./dist/client/index.d.ts",
@@ -43,13 +44,13 @@
     "@types/lodash": "^4.17.14",
     "@types/react": "^19.0.7",
     "@types/react-dom": "^19.0.3",
-    "tsup": "^8.3.5"
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.3"
   },
   "dependencies": {
     "@conform-to/react": "^1.2.2",
     "@conform-to/zod": "^1.2.2",
-    "lodash": "^4.17.21",
-    "typescript": "^5.7.3"
+    "lodash": "^4.17.21"
   },
   "peerDependencies": {
     "react": "^19.0.0",

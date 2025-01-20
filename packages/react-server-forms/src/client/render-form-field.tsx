@@ -8,7 +8,7 @@ import {
 import _ from "lodash";
 import { type JSX } from "react";
 import { z } from "zod";
-import type { FormRendererOptions } from "./form-renderer";
+import { useReactServerForms } from "./provider";
 
 function safeCall<T extends (...args: any[]) => JSX.Element>(
   renderer: T | undefined,
@@ -64,7 +64,6 @@ export type FormFieldProps<
   fields: Record<keyof TSchema["shape"], FieldMetadata>;
   schema: TSchema;
   fieldKey: TKey;
-  formRenderer: FormRendererOptions;
   isPending: boolean;
 };
 
@@ -73,14 +72,11 @@ export function RenderSubmit<
   TKey extends keyof TSchema["shape"],
 >({
   schema,
-  formRenderer,
   isPending,
-}: Pick<
-  FormFieldProps<TSchema, TKey>,
-  "schema" | "formRenderer" | "isPending"
->) {
+}: Pick<FormFieldProps<TSchema, TKey>, "schema" | "isPending">) {
   const config: unknown = JSON.parse(schema.description ?? "{}");
   const submitConfig = submitConfigSchema.parse(config);
+  const { formRenderer } = useReactServerForms();
 
   return formRenderer.Submit({
     buttonProps: { type: "submit" },
@@ -92,15 +88,10 @@ export function RenderSubmit<
 export function RenderFormField<
   TSchema extends z.ZodObject<any>,
   TKey extends keyof TSchema["shape"],
->({
-  fields,
-  schema,
-  fieldKey,
-  formRenderer,
-  isPending,
-}: FormFieldProps<TSchema, TKey>) {
+>({ fields, schema, fieldKey, isPending }: FormFieldProps<TSchema, TKey>) {
   const field = fields[fieldKey];
   const fieldSchema: z.ZodTypeAny = schema.shape[fieldKey];
+  const { formRenderer } = useReactServerForms();
 
   // If it's an object with nested fields, bail out for now
   if (fieldSchema._def.typeName === "ZodObject") {

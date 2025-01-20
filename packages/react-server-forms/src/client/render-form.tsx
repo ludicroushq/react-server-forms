@@ -4,20 +4,17 @@ import { getZodConstraint, parseWithZod } from "@conform-to/zod";
 import { useActionState } from "react";
 import type { z } from "zod";
 import type { ServerFunctionResult } from "../server/actions";
-import type { FormRendererOptions } from "./form-renderer";
 import { RenderFormField, RenderSubmit } from "./render-form-field";
 
 export function RenderForm<Schema extends z.ZodObject<any>, Result>({
   action,
   schema,
-  formRenderer,
 }: {
   action: (
     prevState: unknown,
     formData: FormData,
   ) => Promise<ServerFunctionResult<Result>>;
   schema: Schema;
-  formRenderer: FormRendererOptions;
 }) {
   const [lastResult, execute, isPending] = useActionState(action, undefined);
   const [form, fields] = useForm({
@@ -36,15 +33,10 @@ export function RenderForm<Schema extends z.ZodObject<any>, Result>({
           fields={fields}
           schema={schema}
           fieldKey={key as keyof typeof schema.shape}
-          formRenderer={formRenderer}
           isPending={isPending}
         />
       ))}
-      <RenderSubmit
-        schema={schema}
-        formRenderer={formRenderer}
-        isPending={isPending}
-      />
+      <RenderSubmit schema={schema} isPending={isPending} />
     </form>
   );
 }

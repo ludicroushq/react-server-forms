@@ -30,5 +30,14 @@ export const formSchema = z
       }),
     ),
     nativeSelect: z.nativeEnum(NativeEnum),
+
+    triggerGlobalError: z
+      .boolean()
+      .optional()
+      .describe(d.Checkbox({ label: "Trigger Global Error" })),
+    triggerFieldError: z
+      .boolean()
+      .optional()
+      .describe(d.Checkbox({ label: "Trigger Field Error" })),
   })
   .describe(d.Form({ submit: { label: "Lets go" } }));

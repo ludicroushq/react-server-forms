@@ -3,46 +3,72 @@ import { createFormRenderer as createFormRendererOriginal } from "react-server-f
 
 export function createFormRenderer(): FormRenderer {
   return createFormRendererOriginal({
-    Text: ({ label, error, inputProps }) => (
+    Form: ({ formProps, children, errors }) => (
+      <form {...formProps}>
+        {errors && (
+          <div role="alert" className="alert alert-error mb-2">
+            <span>{errors.join(", ")}</span>
+          </div>
+        )}
+        {children}
+      </form>
+    ),
+    Text: ({ label, error, inputProps, key }) => (
       <label className="form-control w-full">
         <div className="label">
           <span className="label-text">{label}</span>
         </div>
-        <input {...inputProps} className="input input-bordered w-full" />
+        <input
+          {...inputProps}
+          key={key}
+          className="input input-bordered w-full"
+        />
         <div className="label">
           {error && <span className="label-text-alt text-error">{error}</span>}
         </div>
       </label>
     ),
-    Textarea: ({ label, error, textareaProps }) => (
+    Textarea: ({ label, error, textareaProps, key }) => (
       <label className="form-control w-full">
         <div className="label">
           <span className="label-text">{label}</span>
         </div>
-        <textarea {...textareaProps} className="textarea textarea-bordered" />
+        <textarea
+          key={key}
+          {...textareaProps}
+          className="textarea textarea-bordered"
+        />
 
         <div className="label">
           {error && <span className="label-text-alt text-error">{error}</span>}
         </div>
       </label>
     ),
-    Number: ({ label, error, inputProps }) => (
+    Number: ({ label, error, inputProps, key }) => (
       <label className="form-control w-full">
         <div className="label">
           <span className="label-text">{label}</span>
         </div>
-        <input {...inputProps} className="input input-bordered w-full" />
+        <input
+          {...inputProps}
+          key={key}
+          className="input input-bordered w-full"
+        />
         <div className="label">
           {error && <span className="label-text-alt text-error">{error}</span>}
         </div>
       </label>
     ),
-    Date: ({ label, error, inputProps }) => (
+    Date: ({ label, error, inputProps, key }) => (
       <label className="form-control w-full">
         <div className="label">
           <span className="label-text">{label}</span>
         </div>
-        <input {...inputProps} className="input input-bordered w-full" />
+        <input
+          key={key}
+          {...inputProps}
+          className="input input-bordered w-full"
+        />
         <div className="label">
           {error && <span className="label-text-alt text-error">{error}</span>}
         </div>
@@ -59,14 +85,14 @@ export function createFormRenderer(): FormRenderer {
         </div>
       </label>
     ),
-    Select: ({ label, error, selectProps, options }) => (
+    Select: ({ label, error, selectProps, options, key }) => (
       <label className="form-control w-full">
         <div className="label">
           <span className="label-text">{label}</span>
         </div>
-        <select {...selectProps} className="select select-bordered">
-          {options.map(({ key, value, label }) => (
-            <option key={key} value={value}>
+        <select key={key} {...selectProps} className="select select-bordered">
+          {options.map(({ key, optionProps, label }) => (
+            <option key={key} {...optionProps}>
               {label}
             </option>
           ))}

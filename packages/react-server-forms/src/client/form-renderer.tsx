@@ -1,5 +1,5 @@
 "use client";
-import { type JSX } from "react";
+import { type JSX, type PropsWithChildren } from "react";
 
 /**
  * A base type for the arguments passed to each renderer function.
@@ -7,6 +7,7 @@ import { type JSX } from "react";
 export type BaseRenderArgs = {
   label?: string;
   error?: string;
+  key: string;
   isPending: boolean;
 };
 
@@ -23,12 +24,22 @@ type TextareaProps = {
 
 type SelectProps = {
   selectProps: React.SelectHTMLAttributes<HTMLSelectElement>;
-  options: { key: string; value: string; label: string }[];
+  options: {
+    key: string;
+    label: string;
+    optionProps: React.OptionHTMLAttributes<HTMLOptionElement>;
+  }[];
 };
 
 type Renderer<Props> = (args: Props) => JSX.Element;
 
+type FormProps = PropsWithChildren<{
+  formProps: React.FormHTMLAttributes<HTMLFormElement>;
+  errors?: string[];
+}>;
+
 export type FormRendererOptions = {
+  Form: Renderer<FormProps>;
   Text?: Renderer<BaseRenderArgs & InputProps>;
   Textarea?: Renderer<BaseRenderArgs & TextareaProps>;
   Number?: Renderer<BaseRenderArgs & InputProps>;

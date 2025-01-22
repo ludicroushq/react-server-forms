@@ -9,11 +9,11 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@react-server-forms/daisy-ui": "workspace:*",
     "next": "15.1.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-server-forms": "workspace:*",
-    "@react-server-forms/daisy-ui": "workspace:*",
     "zod": "^3.24.1"
   },
   "devDependencies": {

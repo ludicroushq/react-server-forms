@@ -1,5 +1,5 @@
-// @ts-check
 import neostandard, { resolveIgnoresFromGitignore } from "neostandard";
+import reactHooksPlugin from "eslint-plugin-react-hooks";
 
 export default [
   ...neostandard({
@@ -19,5 +19,11 @@ export default [
         },
       ],
     },
+  },
+  {
+    plugins: {
+      "react-hooks": reactHooksPlugin,
+    },
+    rules: reactHooksPlugin.configs.recommended.rules,
   },
 ];

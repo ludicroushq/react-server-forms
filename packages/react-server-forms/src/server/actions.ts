@@ -1,19 +1,27 @@
-import type { SubmissionResult } from "@conform-to/react";
+import type { Submission, SubmissionResult } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod";
 import type { z } from "zod";
-import { FormError, FormFieldError } from "./errors";
+import type { FormError, FormFieldError } from "./errors";
 
 export type ServerFunctionResult<Result> = {
   _form: SubmissionResult<string[]> | null | undefined;
-  result?: Result;
-};
+} & (
+  | {
+      state: "error";
+    }
+  | {
+      state: "success";
+      result: Result;
+    }
+);
 
-export type Handler<Schema extends z.ZodTypeAny, Result> = (props: {
+export type Handler<Schema extends z.ZodObject<any>, Result> = (props: {
   prevState: unknown;
   value: z.infer<Schema>;
+  submission: Submission<z.input<Schema>, string[], z.output<Schema>>;
 }) => Promise<Result> | Result;
 
-export function createFormAction<Schema extends z.ZodTypeAny, Result>(
+export function createFormAction<Schema extends z.ZodObject<any>, Result>(
   schema: Schema,
   handler: Handler<Schema, Result>,
 ) {
@@ -22,7 +30,7 @@ export function createFormAction<Schema extends z.ZodTypeAny, Result>(
   };
 }
 
-export async function handleFormAction<Schema extends z.ZodTypeAny, Result>(
+export async function handleFormAction<Schema extends z.ZodObject<any>, Result>(
   schema: Schema,
   prevState: unknown,
   formData: FormData,
@@ -33,6 +41,7 @@ export async function handleFormAction<Schema extends z.ZodTypeAny, Result>(
   if (submission.status !== "success") {
     return {
       _form: submission.reply(),
+      state: "error",
     };
   }
 
@@ -40,30 +49,46 @@ export async function handleFormAction<Schema extends z.ZodTypeAny, Result>(
     const result = await handler({
       prevState,
       value: submission.value,
+      submission,
     });
 
     return {
       _form: submission.reply({
-        formErrors: ["An unexpected error occurred"],
+        resetForm: true,
       }),
+      state: "success",
       result,
     };
   } catch (err) {
-    if (err instanceof FormFieldError) {
+    if (
+      typeof err === "object" &&
+      err !== null &&
+      "name" in err &&
+      err.name === "FormFieldError"
+    ) {
+      const fieldError = err as FormFieldError<Schema>;
       return {
         _form: submission.reply({
           fieldErrors: {
-            [err.field]: [err.message],
+            [fieldError.field]: [fieldError.message],
           },
         }),
+        state: "error",
       };
     }
 
-    if (err instanceof FormError) {
+    if (
+      typeof err === "object" &&
+      err !== null &&
+      "name" in err &&
+      err.name === "FormError"
+    ) {
+      const formError = err as FormError;
       return {
         _form: submission.reply({
-          formErrors: [err.message],
+          formErrors: [formError.message],
         }),
+        state: "error",
       };
     }
 
@@ -72,10 +97,7 @@ export async function handleFormAction<Schema extends z.ZodTypeAny, Result>(
       _form: submission.reply({
         formErrors: ["An unexpected error occurred"],
       }),
+      state: "error",
     };
   }
-
-  return {
-    _form: null,
-  };
 }

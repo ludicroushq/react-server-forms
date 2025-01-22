@@ -7,7 +7,7 @@ import {
 } from "@conform-to/react";
 import _ from "lodash";
 import { type JSX } from "react";
-import { z } from "zod";
+import { z, type ZodFirstPartySchemaTypes } from "zod";
 import { useReactServerForms } from "./provider";
 
 function safeCall<T extends (...args: any[]) => JSX.Element>(
@@ -90,8 +90,32 @@ export function RenderFormField<
   TKey extends keyof TSchema["shape"],
 >({ fields, schema, fieldKey, isPending }: FormFieldProps<TSchema, TKey>) {
   const field = fields[fieldKey];
-  const fieldSchema: z.ZodTypeAny = schema.shape[fieldKey];
   const { formRenderer } = useReactServerForms();
+
+  function getFieldSchema(
+    fieldSchema: ZodFirstPartySchemaTypes,
+    { optional, defaultValue }: { optional: boolean; defaultValue: any },
+  ) {
+    if (fieldSchema._def.typeName === "ZodOptional") {
+      return getFieldSchema(fieldSchema._def.innerType, {
+        optional: true,
+        defaultValue,
+      });
+    }
+    if (fieldSchema._def.typeName === "ZodDefault") {
+      return getFieldSchema(fieldSchema._def.innerType, {
+        optional,
+        defaultValue: fieldSchema._def.defaultValue,
+      });
+    }
+
+    return { fieldSchema, optional, defaultValue };
+  }
+
+  const { fieldSchema } = getFieldSchema(schema.shape[fieldKey], {
+    optional: false,
+    defaultValue: undefined,
+  });
 
   // If it's an object with nested fields, bail out for now
   if (fieldSchema._def.typeName === "ZodObject") {
@@ -122,6 +146,7 @@ export function RenderFormField<
         error,
         textareaProps: _.omit(getTextareaProps(field, {}), "key"),
         isPending,
+        key: field.key ?? field.id,
       });
     }
 
@@ -134,6 +159,7 @@ export function RenderFormField<
       error,
       inputProps: _.omit(getInputProps(field, { type: derivedType }), "key"),
       isPending,
+      key: field.key ?? field.id,
     });
   }
 
@@ -147,6 +173,7 @@ export function RenderFormField<
       error,
       inputProps: _.omit(getInputProps(field, { type: "number" }), "key"),
       isPending,
+      key: field.key ?? field.id,
     });
   }
 
@@ -160,6 +187,7 @@ export function RenderFormField<
       error,
       inputProps: _.omit(getInputProps(field, { type: "checkbox" }), "key"),
       isPending,
+      key: field.key ?? field.id,
     });
   }
 
@@ -173,6 +201,7 @@ export function RenderFormField<
       error,
       inputProps: _.omit(getInputProps(field, { type: "date" }), "key"),
       isPending,
+      key: field.key ?? field.id,
     });
   }
 
@@ -192,13 +221,24 @@ export function RenderFormField<
     )({
       label,
       error,
-      selectProps: _.omit(getSelectProps(field, {}), "key"),
-      options: enumSchema.options.map((opt: string) => ({
-        key: opt,
-        value: opt,
-        label: selectEnumConfig.options?.[opt] ?? opt,
-      })),
+      selectProps: {
+        ..._.omit(getSelectProps(field, {}), "key"),
+        defaultValue: "",
+      },
+      options: [
+        {
+          key: "",
+          optionProps: { value: "", disabled: true },
+          label: "Select an option",
+        },
+        ...enumSchema.options.map((opt: string) => ({
+          key: opt,
+          optionProps: { value: opt },
+          label: selectEnumConfig.options?.[opt] ?? opt,
+        })),
+      ],
       isPending,
+      key: field.key ?? field.id,
     });
   }
 
@@ -224,15 +264,28 @@ export function RenderFormField<
     )({
       label,
       error,
-      selectProps: _.omit(getSelectProps(field, {}), "key"),
-      options: values.map(([k, v]) => ({
-        key: k,
-        value: v as string,
-        label: k,
-      })),
+      selectProps: {
+        ..._.omit(getSelectProps(field, {}), "key"),
+        defaultValue: "",
+      },
+      options: [
+        {
+          key: "",
+          optionProps: { value: "", disabled: true },
+          label: "Select an option",
+        },
+        ...values.map(([k, v]) => ({
+          key: k,
+          optionProps: { value: v as string },
+          label: k,
+        })),
+      ],
       isPending,
+      key: field.key ?? field.id,
     });
   }
 
-  throw new Error(`Unsupported Zod type for field "${field.name}".`);
+  throw new Error(
+    `Unsupported Zod type for field "${field.name}": ${fieldSchema._def.typeName}.`,
+  );
 }

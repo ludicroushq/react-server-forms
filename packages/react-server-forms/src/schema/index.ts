@@ -10,9 +10,7 @@ import type {
 
 type RootConfig = z.infer<typeof rootConfigSchema>;
 type StringConfig = RootConfig & z.infer<typeof stringConfigSchema>;
-type FormConfig = RootConfig & {
-  submit?: z.infer<typeof submitConfigSchema>;
-};
+type FormConfig = RootConfig & z.infer<typeof submitConfigSchema>;
 type EnumConfig = RootConfig & z.infer<typeof enumConfigSchema>;
 type SelectEnumConfig = RootConfig & z.infer<typeof selectEnumConfigSchema>;
 

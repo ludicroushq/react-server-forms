@@ -60,38 +60,33 @@ export async function handleFormAction<Schema extends z.ZodObject<any>, Result>(
       result,
     };
   } catch (err) {
-    if (
-      typeof err === "object" &&
-      err !== null &&
-      "name" in err &&
-      err.name === "FormFieldError"
-    ) {
-      const fieldError = err as FormFieldError<Schema>;
-      return {
-        _form: submission.reply({
-          fieldErrors: {
-            [fieldError.field]: [fieldError.message],
-          },
-        }),
-        state: "error",
-      };
-    }
+    if (typeof err === "object" && err !== null && "name" in err) {
+      if (err.name === "FormFieldError") {
+        const fieldError = err as FormFieldError<Schema>;
+        return {
+          _form: submission.reply({
+            fieldErrors: {
+              [fieldError.field]: [fieldError.message],
+            },
+          }),
+          state: "error",
+        };
+      }
 
-    if (
-      typeof err === "object" &&
-      err !== null &&
-      "name" in err &&
-      err.name === "FormError"
-    ) {
-      const formError = err as FormError;
-      return {
-        _form: submission.reply({
-          formErrors: [formError.message],
-        }),
-        state: "error",
-      };
-    }
+      if (err.name === "FormError") {
+        const formError = err as FormError;
+        return {
+          _form: submission.reply({
+            formErrors: [formError.message],
+          }),
+          state: "error",
+        };
+      }
 
+      if (err.name === "NEXT_REDIRECT") {
+        throw err;
+      }
+    }
     console.error(err);
     return {
       _form: submission.reply({

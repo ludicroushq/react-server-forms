@@ -1,0 +1,31 @@
+{
+  "name": "website",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@react-server-forms/daisy-ui": "https://pkg.pr.new/ludicroushq/react-server-forms/@react-server-forms/daisy-ui@6d74350",
+    "lucide-react": "^0.474.0",
+    "next": "15.1.6",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-server-forms": "https://pkg.pr.new/ludicroushq/react-server-forms@6d74350",
+    "shiki": "^2.1.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.16",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "daisyui": "^4.12.23",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5"
+  }
+}

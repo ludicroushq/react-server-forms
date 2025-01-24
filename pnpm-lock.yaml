@@ -38,8 +38,8 @@ importers:
   apps/website:
     dependencies:
       "@react-server-forms/daisy-ui":
-        specifier: https://pkg.pr.new/ludicroushq/react-server-forms/@react-server-forms/daisy-ui@6d74350
-        version: https://pkg.pr.new/ludicroushq/react-server-forms/@react-server-forms/daisy-ui@6d74350(daisyui@4.12.23(postcss@8.5.1))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+        specifier: https://pkg.pr.new/ludicroushq/react-server-forms/@react-server-forms/daisy-ui@db14365
+        version: https://pkg.pr.new/ludicroushq/react-server-forms/@react-server-forms/daisy-ui@db14365(daisyui@4.12.23(postcss@8.5.1))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       lucide-react:
         specifier: ^0.474.0
         version: 0.474.0(react@19.0.0)
@@ -53,8 +53,8 @@ importers:
         specifier: ^19.0.0
         version: 19.0.0(react@19.0.0)
       react-server-forms:
-        specifier: https://pkg.pr.new/ludicroushq/react-server-forms@6d74350
-        version: https://pkg.pr.new/ludicroushq/react-server-forms@6d74350(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(zod@3.24.1)
+        specifier: https://pkg.pr.new/ludicroushq/react-server-forms@db14365
+        version: https://pkg.pr.new/ludicroushq/react-server-forms@db14365(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(zod@3.24.1)
       shiki:
         specifier: ^2.1.0
         version: 2.1.0
@@ -951,10 +951,10 @@ packages:
       }
     engines: { node: ">=14" }
 
-  "@react-server-forms/daisy-ui@https://pkg.pr.new/ludicroushq/react-server-forms/@react-server-forms/daisy-ui@6d74350":
+  "@react-server-forms/daisy-ui@https://pkg.pr.new/ludicroushq/react-server-forms/@react-server-forms/daisy-ui@db14365":
     resolution:
       {
-        tarball: https://pkg.pr.new/ludicroushq/react-server-forms/@react-server-forms/daisy-ui@6d74350,
+        tarball: https://pkg.pr.new/ludicroushq/react-server-forms/@react-server-forms/daisy-ui@db14365,
       }
     version: 0.0.0
     peerDependencies:
@@ -3448,9 +3448,9 @@ packages:
         integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==,
       }
 
-  react-server-forms@https://pkg.pr.new/ludicroushq/react-server-forms@6d74350:
+  react-server-forms@https://pkg.pr.new/ludicroushq/react-server-forms@db14365:
     resolution:
-      { tarball: https://pkg.pr.new/ludicroushq/react-server-forms@6d74350 }
+      { tarball: https://pkg.pr.new/ludicroushq/react-server-forms@db14365 }
     version: 0.0.0
     peerDependencies:
       react: ^19.0.0
@@ -4663,7 +4663,7 @@ snapshots:
   "@pkgjs/parseargs@0.11.0":
     optional: true
 
-  "@react-server-forms/daisy-ui@https://pkg.pr.new/ludicroushq/react-server-forms/@react-server-forms/daisy-ui@6d74350(daisyui@4.12.23(postcss@8.5.1))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)":
+  "@react-server-forms/daisy-ui@https://pkg.pr.new/ludicroushq/react-server-forms/@react-server-forms/daisy-ui@db14365(daisyui@4.12.23(postcss@8.5.1))(react-dom@19.0.0(react@19.0.0))(react@19.0.0)":
     dependencies:
       daisyui: 4.12.23(postcss@8.5.1)
       react: 19.0.0
@@ -6314,7 +6314,7 @@ snapshots:
 
   react-is@16.13.1: {}
 
-  react-server-forms@https://pkg.pr.new/ludicroushq/react-server-forms@6d74350(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(zod@3.24.1):
+  react-server-forms@https://pkg.pr.new/ludicroushq/react-server-forms@db14365(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(zod@3.24.1):
     dependencies:
       "@conform-to/react": 1.2.2(react@19.0.0)
       "@conform-to/zod": 1.2.2(zod@3.24.1)

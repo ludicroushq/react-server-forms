@@ -3,26 +3,23 @@ import Link from "next/link";
 import { CodeBlock } from "./_components/code-block";
 import { Form } from "./_components/form";
 
-const code = `// schema.ts
-export const formSchema = z
+const code = `export const formSchema = z
   .object({
-    firstName: z.string().min(1).describe(d.Text({ label: "First Name" })),
-    lastName: z.string().min(1).describe(d.Text({ label: "Last Name" })),
-    email: z.string().email().min(1).describe(d.Text({ label: "Email Address", type: "email" })),
-  }).describe(d.Form({ submit: { label: "Lets go" } }));
-
-// actions.ts
-'use server'
-export const formAction = createFormAction(formSchema, async ({ value }) => {
-  redirect(\`/?success=true&firstName=\${value.firstName}&lastName=\${value.lastName}&email=\${value.email}\`);
-});
-
-// page.tsx
-'use client';
-export default function Page({ searchParams }: { searchParams: Promise<{ success: string }>}) {
-  if ((await searchParams).success === 'true') return <div>SUCCESS!</div>
-  return <RenderForm schema={formSchema} action={formAction} />;
-}
+    firstName: z
+      .string()
+      .min(1)
+      .describe(d.Text({ label: "First Name" })),
+    lastName: z
+      .string()
+      .min(1)
+      .describe(d.Text({ label: "Last Name" })),
+    email: z
+      .string()
+      .email()
+      .min(1)
+      .describe(d.Text({ label: "Email Address", type: "email" })),
+  })
+  .describe(d.Form({ submit: { label: "Lets go" } }));
 `;
 
 export default function LandingPage() {

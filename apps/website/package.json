@@ -9,12 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@react-server-forms/daisy-ui": "https://pkg.pr.new/ludicroushq/react-server-forms/@react-server-forms/daisy-ui@6d74350",
+    "@react-server-forms/daisy-ui": "https://pkg.pr.new/ludicroushq/react-server-forms/@react-server-forms/daisy-ui@db14365",
     "lucide-react": "^0.474.0",
     "next": "15.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-server-forms": "https://pkg.pr.new/ludicroushq/react-server-forms@6d74350",
+    "react-server-forms": "https://pkg.pr.new/ludicroushq/react-server-forms@db14365",
     "shiki": "^2.1.0",
     "zod": "^3.24.1"
   },

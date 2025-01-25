@@ -8,11 +8,13 @@
     "ci:test:pretty": "prettier --check .",
     "dev": "turbo dev  --filter 'react-server-forms' --filter '@react-server-forms/*'",
     "prepare": "husky",
+    "release": "turbo run build  --filter 'react-server-forms' --filter '@react-server-forms/*' && changeset publish",
     "test": "concurrently pnpm:test:*",
     "test:lint": "eslint --fix .",
     "test:pretty": "prettier --write ."
   },
   "devDependencies": {
+    "@changesets/cli": "^2.27.12",
     "concurrently": "^9.1.2",
     "eslint": "^9.18.0",
     "eslint-plugin-react-hooks": "^5.1.0",

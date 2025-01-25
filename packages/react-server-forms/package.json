@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "description": "an easy way to manage and render forms with react server functions",
   "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     "./client": {
       "types": "./dist/client/index.d.ts",

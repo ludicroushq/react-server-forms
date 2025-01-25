@@ -1,7 +1,78 @@
 ---
-title: Hello World
+title: Welcome to React Server Forms
+description: React Server Forms is a library for building forms in React.
 ---
 
-## Introduction
+## Problem
 
-I love Anime.
+React Server Functions were released alongside React 19. They handle a lot of the edge cases and race conditions involved with form submissions. However, they are still quite cumbersome to wire up with UI libraries. You may find yourself copy pasting code that looks like this:
+
+```tsx
+<label className="form-control w-full">
+  <div className="label">
+    <span className="label-text">Username</span>
+  </div>
+  <input
+    type="text"
+    name="username"
+    placeholder="Please enter your username"
+    className="input input-bordered w-full"
+    {...register("username")}
+  />
+  <div className="label">
+    {errors.username && (
+      <span className="label-text-alt text-error">
+        {errors.username.message}
+      </span>
+    )}
+  </div>
+</label>
+```
+
+over and over and over again. If you realize that you want to handle an additional loading state, such as disabling the input while the form is submitting, you'll find yourself updating a bunch of files. Furthermore, you'll still have to wire up the React Server Function and Zod to handle the form submission.
+
+## Solution
+
+React Server Forms instead will handle all of the boilerplate involved with forms and plug into popular UI libraries. Instead your code will looks something like this:
+
+```tsx
+// schema.ts
+export const formSchema = z.object({
+  username: z.string().min(3).max(20).describe(d.Text({ label: "Username" })),,
+});
+
+// actions.ts
+"use server";
+import { createFormAction } from "react-server-forms/server";
+
+export const formAction = createFormAction(formSchema, async ({ value }) => {
+  console.log(`the username is ${value.username}`);
+});
+
+// form.tsx
+'use client';
+
+export function Form() {
+  return <RenderForm schema={formSchema} action={formAction} />;
+}
+```
+
+In the root of your project, you can select a form renderer to use.
+
+```tsx
+"use client";
+import { createFormRenderer } from "@react-server-forms/daisy-ui";
+import { ReactServerFormsProvider } from "react-server-forms/client";
+
+const formRenderer = createFormRenderer();
+
+export default function Layout({ children }: PropsWithChildren) {
+  return (
+    <ReactServerFormsProvider formRenderer={formRenderer}>
+      {children}
+    </ReactServerFormsProvider>
+  );
+}
+```
+
+That's it! 80% of your forms are simple, so they should not require so much code. For your complex cases you are still free to manually wire up the forms.

@@ -1,0 +1,125 @@
+---
+title: Get Started
+description: Get started with React Server Forms.
+---
+
+import { Banner } from "fumadocs-ui/components/banner";
+
+## Prerequisites
+
+At the moment, only `Next.js` with `React 19` is supported.
+
+## Installation
+
+```bash
+npm install react-server-forms
+```
+
+For this example we'll be using DaisyUI + Tailwind and will assume that you have that set up. React Server Forms comes with a pre-built renderer for DaisyUI, which you can install with the following command:
+
+```bash
+npm install @react-server-forms/daisy-ui
+```
+
+## Setup
+
+Create a `providers.tsx` file in your app folder. Here you will need to import or create a form renderer.
+
+<Banner>
+  You select from pre-built form renderers or create your own. See the [Form
+  Renderer](/docs/form-renderer) docs to learn more.
+</Banner>
+
+```tsx
+"use client";
+import { createFormRenderer } from "@react-server-forms/daisy-ui";
+import { ReactServerFormsProvider } from "react-server-forms/client";
+
+const formRenderer = createFormRenderer();
+
+export function Providers({ children }: PropsWithChildren) {
+  return (
+    <ReactServerFormsProvider formRenderer={formRenderer}>
+      {children}
+    </ReactServerFormsProvider>
+  );
+}
+```
+
+Then update your root `layout.tsx` file to wrap your app in the `Providers` component.
+
+```tsx
+export default function RootLayout({ children }: PropsWithChildren) {
+  return (
+    <html lang="en">
+      <body>
+        <Providers>{children}</Providers>
+      </body>
+    </html>
+  );
+}
+```
+
+## Usage
+
+Let's create a simple newsletter signup form. We'll take a first name, last name, and email address.
+
+### Form Schema
+
+First we'll create a form schema.
+
+```tsx
+import { z } from "zod";
+import { d } from "react-server-forms/schema";
+
+export const formSchema = z
+  .object({
+    firstName: z
+      .string()
+      .min(1)
+      .describe(d.Text({ label: "First Name" })),
+    lastName: z
+      .string()
+      .min(1)
+      .describe(d.Text({ label: "Last Name" })),
+    email: z
+      .string()
+      .email()
+      .min(1)
+      .describe(d.Text({ label: "Email Address", type: "email" })),
+  })
+  .describe(d.Form({ submit: { label: "Lets go" } }));
+```
+
+`react-server-forms/schema` provides a `d` object that contains helpers to annotate your schema with input fields metadata.
+
+### Form Action
+
+```tsx
+"use server";
+import { createFormAction } from "react-server-forms/server";
+import { formSchema } from "./schema";
+import { redirect } from "next/navigation";
+
+export const formAction = createFormAction(formSchema, async ({ value }) => {
+  console.log(value);
+  redirect("/?success=true");
+});
+```
+
+Typically it is best to redirect after the form action is complete, however you can also return JSON data and manage the form state on the client side.
+
+### UI
+
+Finally we'll wire up the UI. Since the entire app is wrapped with a formRenderer provider, your form code will be very minimal.
+
+```tsx
+"use client";
+import { RenderForm } from "react-server-forms/client";
+import { formSchema } from "./schema";
+import { formAction } from "./actions";
+
+export function Form() {
+  return <RenderForm schema={formSchema} action={formAction} />;
+}
+```

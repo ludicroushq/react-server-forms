@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "./providers";
 import { Suspense } from "react";
+import { RootProvider } from "fumadocs-ui/provider";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -17,7 +18,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={`antialiased`}>
         <Suspense>
-          <Providers>{children}</Providers>
+          <Providers>
+            <RootProvider theme={{ enabled: false }}>{children}</RootProvider>
+          </Providers>
         </Suspense>
       </body>
     </html>

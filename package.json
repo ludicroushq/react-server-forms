@@ -7,7 +7,7 @@
     "ci:test:lint": "eslint .",
     "ci:test:pretty": "prettier --check .",
     "dev": "turbo dev  --filter 'react-server-forms' --filter '@react-server-forms/*'",
-    "prepare": "husky",
+    "prepare": "husky && fumadocs-mdx",
     "test": "concurrently pnpm:test:*",
     "test:lint": "eslint --fix .",
     "test:pretty": "prettier --write ."

@@ -36,7 +36,16 @@ export default function LandingPage() {
           <div className="navbar-end">
             <ul className="menu menu-horizontal px-1">
               <li>
-                <Link href="/get-started">Get Started</Link>
+                <Link href="/docs">Docs</Link>
+              </li>
+              <li>
+                <Link
+                  href="https://github.com/ludicroushq/react-server-forms"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Github
+                </Link>
               </li>
             </ul>
           </div>
@@ -52,13 +61,13 @@ export default function LandingPage() {
               ease.
             </p>
             <div className="flex flex-row justify-center gap-4 not-prose">
-              <Link href="/docs/getting-started" className="btn btn-primary">
+              <Link href="/docs" className="btn btn-primary">
                 Get Started
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Link>
-              <Link href="/learn" className="btn btn-outline">
+              {/* <Link href="/docs/" className="btn btn-outline">
                 Learn react-server-forms
-              </Link>
+              </Link> */}
             </div>
           </div>
           <div className="mt-8 grid grid-cols-2 max-w-4xl mx-auto gap-4">

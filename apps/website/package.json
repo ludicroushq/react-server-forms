@@ -10,6 +10,10 @@
   },
   "dependencies": {
     "@react-server-forms/daisy-ui": "https://pkg.pr.new/ludicroushq/react-server-forms/@react-server-forms/daisy-ui@db14365",
+    "@types/mdx": "^2.0.13",
+    "fumadocs-core": "^14.7.7",
+    "fumadocs-mdx": "^11.3.1",
+    "fumadocs-ui": "^14.7.7",
     "lucide-react": "^0.474.0",
     "next": "15.1.6",
     "react": "^19.0.0",

@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "prepare": "fumadocs-mdx"
   },
   "dependencies": {
     "@react-server-forms/daisy-ui": "https://pkg.pr.new/ludicroushq/react-server-forms/@react-server-forms/daisy-ui@db14365",

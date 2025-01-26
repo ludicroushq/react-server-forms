@@ -2,6 +2,7 @@
 import {
   getFormProps,
   useForm,
+  type DefaultValue,
   type FieldMetadata,
   type Submission,
 } from "@conform-to/react";
@@ -16,6 +17,7 @@ export function RenderForm<Schema extends z.ZodObject<any>, Result>({
   action,
   schema,
   onSuccess,
+  defaultValue,
 }: {
   action: (
     prevState: unknown,
@@ -23,11 +25,13 @@ export function RenderForm<Schema extends z.ZodObject<any>, Result>({
   ) => Promise<ServerFunctionResult<Result>>;
   schema: Schema;
   onSuccess?: (result: Result) => void;
+  defaultValue?: DefaultValue<Schema>;
 }) {
   const [lastResult, execute, isPending] = useActionState(action, undefined);
   const [form, fields] = useForm<Schema>({
     lastResult: lastResult?._form,
     constraint: getZodConstraint(schema),
+    defaultValue,
     // https://github.com/edmundhung/conform/discussions/606#discussioncomment-9680781
     onSubmit(event, { formData }) {
       event.preventDefault();

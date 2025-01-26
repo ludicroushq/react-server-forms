@@ -35,6 +35,7 @@ function getStringInputType(schema: z.ZodString) {
 
 export const rootConfigSchema = z.object({
   label: z.string().optional(),
+  hidden: z.boolean().optional(),
 });
 
 export const stringConfigSchema = z.object({
@@ -129,6 +130,17 @@ export function RenderFormField<
 
   const label = rootConfig.label ?? field.name;
   const error = field.errors?.[0];
+
+  if (rootConfig.hidden) {
+    return (
+      <input
+        type="hidden"
+        name={field.name}
+        defaultValue={field.value as string}
+        key={field.key ?? field.id}
+      />
+    );
+  }
 
   // Handle ZodString
   if (fieldSchema._def.typeName === "ZodString") {

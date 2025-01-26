@@ -1,5 +1,11 @@
 # react-server-forms
 
+## 0.0.3
+
+### Patch Changes
+
+- 1c71702: add default values and hidden
+
 ## 0.0.2
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # react-server-forms
 
+## 0.0.4
+
+### Patch Changes
+
+- 11b34a5: fix default values
+
 ## 0.0.3
 
 ### Patch Changes

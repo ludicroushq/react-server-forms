@@ -1,5 +1,13 @@
 # with-daisy
 
+## 0.1.3
+
+### Patch Changes
+
+- Updated dependencies [1c71702]
+  - react-server-forms@0.0.3
+  - @react-server-forms/daisy-ui@0.0.1
+
 ## 0.1.2
 
 ### Patch Changes

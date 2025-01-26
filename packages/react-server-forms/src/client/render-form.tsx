@@ -25,10 +25,10 @@ export function RenderForm<Schema extends z.ZodObject<any>, Result>({
   ) => Promise<ServerFunctionResult<Result>>;
   schema: Schema;
   onSuccess?: (result: Result) => void;
-  defaultValue?: DefaultValue<Schema>;
+  defaultValue?: DefaultValue<z.infer<Schema>>;
 }) {
   const [lastResult, execute, isPending] = useActionState(action, undefined);
-  const [form, fields] = useForm<Schema>({
+  const [form, fields] = useForm<z.infer<Schema>>({
     lastResult: lastResult?._form,
     constraint: getZodConstraint(schema),
     defaultValue,

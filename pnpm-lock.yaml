@@ -178,12 +178,6 @@ importers:
 
   packages/react-server-forms:
     dependencies:
-      "@conform-to/react":
-        specifier: ^1.2.2
-        version: 1.2.2(react@19.0.0)
-      "@conform-to/zod":
-        specifier: ^1.2.2
-        version: 1.2.2(zod@3.24.1)
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
@@ -196,6 +190,9 @@ importers:
       zod:
         specifier: ^3.0.0
         version: 3.24.1
+      zod-to-json-schema:
+        specifier: ^3.24.1
+        version: 3.24.1(zod@3.24.1)
     devDependencies:
       "@types/lodash":
         specifier: ^4.17.14
@@ -6162,6 +6159,14 @@ packages:
       }
     engines: { node: ">=10" }
 
+  zod-to-json-schema@3.24.1:
+    resolution:
+      {
+        integrity: sha512-3h08nf3Vw3Wl3PK+q3ow/lIil81IT2Oa7YpQyUUDsEWbXveMesdfK1xBd2RhCkynwZndAxixji/7SYJJowr62w==,
+      }
+    peerDependencies:
+      zod: ^3.24.1
+
   zod@3.24.1:
     resolution:
       {
@@ -10408,6 +10413,10 @@ snapshots:
       yargs-parser: 21.1.1
 
   yocto-queue@0.1.0: {}
+
+  zod-to-json-schema@3.24.1(zod@3.24.1):
+    dependencies:
+      zod: 3.24.1
 
   zod@3.24.1: {}
 

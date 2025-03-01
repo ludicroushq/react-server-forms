@@ -51,9 +51,8 @@
     "typescript": "^5.7.3"
   },
   "dependencies": {
-    "@conform-to/react": "^1.2.2",
-    "@conform-to/zod": "^1.2.2",
-    "lodash": "^4.17.21"
+    "lodash": "^4.17.21",
+    "zod-to-json-schema": "^3.24.1"
   },
   "peerDependencies": {
     "react": "^19.0.0",

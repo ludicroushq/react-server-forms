@@ -1,3 +1,3 @@
 export { createFormAction, handleFormAction } from "./actions";
 export { FormError, FormFieldError } from "./errors";
-export type { ServerFunctionResult } from "./actions";
+export type { ServerFunctionResponse } from "./actions";

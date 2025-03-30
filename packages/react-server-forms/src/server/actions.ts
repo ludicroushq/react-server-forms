@@ -1,65 +1,74 @@
-import type { z } from "zod";
+import type { JSONSchema7 } from "json-schema";
 import type { FormError, FormFieldError } from "./errors";
 
-export type ServerFunctionResponse<Schema extends z.ZodObject<any>, Result> =
+export interface SchemaValidator<T> {
+  validate: (data: unknown) => ValidationResult<T>;
+  getJsonSchema: () => JSONSchema7;
+}
+
+export interface ValidationResult<T> {
+  success: boolean;
+  data?: T;
+  errors?: {
+    formErrors: string[];
+    fieldErrors: Record<string, string[]>;
+  };
+}
+
+export type ServerFunctionResponse<Result> =
   | {
       state: "error";
       formErrors: string[];
-      fieldErrors: Partial<Record<keyof z.output<Schema>, string[]>>;
+      fieldErrors: Record<string, string[]>;
     }
   | {
       state: "success";
       result: Result;
     };
 
-export type Handler<Schema extends z.ZodObject<any>, Result> = (props: {
-  data: z.infer<Schema>;
-  prevState: ServerFunctionResponse<Schema, Result> | null;
+export type Handler<T, Result = T> = (props: {
+  data: T;
+  prevState: ServerFunctionResponse<Result> | null;
   formData: FormData;
 }) => Promise<Result> | Result;
 
-export type ServerFunction<Schema extends z.ZodObject<any>, Result> = (
-  prevState: ServerFunctionResponse<Schema, Result> | null,
+export type ServerFunction<T, Result = T> = (
+  prevState: ServerFunctionResponse<Result> | null,
   formData: FormData,
-) => Promise<ServerFunctionResponse<Schema, Result>>;
+) => Promise<ServerFunctionResponse<Result>>;
 
-export function createFormAction<Schema extends z.ZodObject<any>, Result>(
-  schema: Schema,
-  handler: Handler<Schema, Result>,
-) {
+export function createFormAction<T, Result = T>(
+  schema: SchemaValidator<T>,
+  handler: Handler<T, Result>,
+): ServerFunction<T, Result> {
   return async (
-    prevState: ServerFunctionResponse<Schema, Result> | null,
+    prevState: ServerFunctionResponse<Result> | null,
     formData: FormData,
   ) => {
     return await handleFormAction(schema, prevState, formData, handler);
   };
 }
 
-export async function handleFormAction<Schema extends z.ZodObject<any>, Result>(
-  schema: Schema,
-  prevState: ServerFunctionResponse<Schema, Result> | null,
+export async function handleFormAction<T, Result = T>(
+  schema: SchemaValidator<T>,
+  prevState: ServerFunctionResponse<Result> | null,
   formData: FormData,
-  handler: Handler<Schema, Result>,
-): Promise<ServerFunctionResponse<Schema, Result>> {
-  const parsed = schema.safeParse(formData);
+  handler: Handler<T, Result>,
+): Promise<ServerFunctionResponse<Result>> {
+  const validationResult = schema.validate(formData);
 
-  if (!parsed.success) {
-    const errors = parsed.error.flatten();
-
+  if (!validationResult.success) {
     return {
       state: "error",
-      formErrors: errors.formErrors,
-      fieldErrors: errors.fieldErrors as Record<
-        keyof z.output<Schema>,
-        string[]
-      >,
+      formErrors: validationResult.errors?.formErrors || [],
+      fieldErrors: validationResult.errors?.fieldErrors || {},
     };
   }
 
   try {
     const result = await handler({
       prevState,
-      data: parsed.data,
+      data: validationResult.data as T,
       formData,
     });
 
@@ -70,13 +79,13 @@ export async function handleFormAction<Schema extends z.ZodObject<any>, Result>(
   } catch (err) {
     if (typeof err === "object" && err !== null) {
       if ("name" in err && err.name === "FormFieldError") {
-        const fieldError = err as FormFieldError<Schema>;
+        const fieldError = err as FormFieldError;
         return {
           state: "error",
           formErrors: [],
           fieldErrors: {
             [fieldError.field]: [fieldError.message],
-          } as Record<keyof z.output<Schema>, string[]>,
+          } as Record<string, string[]>,
         };
       }
 

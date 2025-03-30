@@ -1,86 +1,45 @@
 "use client";
-import {
-  getFormProps,
-  useForm,
-  type DefaultValue,
-  type FieldMetadata,
-  type Submission,
-} from "@conform-to/react";
-import { getZodConstraint, parseWithZod } from "@conform-to/zod";
-import { startTransition, useActionState, useEffect } from "react";
+import { useActionState, useTransition } from "react";
 import type { z } from "zod";
-import type { ServerFunctionResult } from "../server/actions";
+import type { SchemaValidator, ServerFunction } from "../server/actions";
 import { useReactServerForms } from "./provider";
 import { RenderFormField, RenderSubmit } from "./render-form-field";
 
-export function RenderForm<Schema extends z.ZodObject<any>, Result>({
+export type DefaultValue<T> = {
+  [K in keyof T]?: T[K];
+};
+
+export function RenderForm<Schema>({
   action,
   schema,
   onSuccess,
   defaultValue,
 }: {
-  action: (
-    prevState: unknown,
-    formData: FormData,
-  ) => Promise<ServerFunctionResult<Result>>;
-  schema: Schema;
-  onSuccess?: (result: Result) => void;
-  defaultValue?: DefaultValue<z.infer<Schema>>;
+  action: ServerFunction<Schema>;
+  schema: SchemaValidator<Schema>;
+  onSuccess?: (result: Schema) => void;
+  defaultValue?: DefaultValue<Schema>;
 }) {
-  const [lastResult, execute, isPending] = useActionState(action, undefined);
-  const [form, fields] = useForm<z.infer<Schema>>({
-    lastResult: lastResult?._form,
-    constraint: getZodConstraint(schema),
-    defaultValue,
-    // https://github.com/edmundhung/conform/discussions/606#discussioncomment-9680781
-    onSubmit(event, { formData }) {
-      event.preventDefault();
-
-      startTransition(async () => {
-        await execute(formData);
-      });
-    },
-    onValidate({ formData }) {
-      return parseWithZod(formData, {
-        schema,
-      }) as Submission<Schema, string[], Schema>;
-    },
-    shouldValidate: "onBlur",
-    shouldRevalidate: "onInput",
-  });
   const { formRenderer } = useReactServerForms();
+  const [prevState, dispatch, isPending] = useActionState(action, null);
 
-  useEffect(() => {
-    if (isPending) {
-      return;
-    }
-
-    if (!lastResult || lastResult.state === "error") {
-      return;
-    }
-
-    onSuccess?.(lastResult.result);
-  }, [isPending, lastResult, onSuccess]);
+  const jsonSchema = schema.getJsonSchema();
 
   return (
     <formRenderer.Form
-      key={form.key}
-      errors={form.errors}
       formProps={{
-        action: execute,
-        ...getFormProps(form),
+        action: dispatch,
       }}
     >
-      {Object.keys(schema.shape).map((key) => (
+      {Object.entries(schema.fields).map(([key, field]) => (
         <RenderFormField
           key={key}
-          fields={fields as Record<keyof Schema["shape"], FieldMetadata>}
-          schema={schema}
-          fieldKey={key as keyof typeof schema.shape}
+          field={field}
+          defaultValue={defaultValue?.[key as keyof z.infer<Schema>]}
           isPending={isPending}
         />
       ))}
-      <RenderSubmit schema={schema} isPending={isPending} />
+      <RenderSubmit schema={schema._schema} isPending={isPending} />
     </formRenderer.Form>
   );
 }

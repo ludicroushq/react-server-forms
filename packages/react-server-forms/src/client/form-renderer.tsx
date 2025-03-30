@@ -7,7 +7,6 @@ import { type JSX, type PropsWithChildren } from "react";
 export type BaseRenderArgs = {
   label?: string;
   error?: string;
-  key: string;
   isPending: boolean;
 };
 
@@ -25,7 +24,6 @@ type TextareaProps = {
 type SelectProps = {
   selectProps: React.SelectHTMLAttributes<HTMLSelectElement>;
   options: {
-    key: string;
     label: string;
     optionProps: React.OptionHTMLAttributes<HTMLOptionElement>;
   }[];

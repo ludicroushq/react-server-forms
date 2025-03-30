@@ -5,25 +5,22 @@ import {
   FormFieldError,
 } from "react-server-forms/server";
 import { formSchema } from "./schema";
+import type { z } from "zod";
 
-export const formAction = createFormAction(formSchema, async ({ value }) => {
-  console.log(value);
+export const formAction = createFormAction(
+  formSchema,
+  async ({ data }: { data: z.infer<typeof formSchema> }) => {
+    if (data.triggerGlobalError) {
+      throw new FormError("This is a global error");
+    }
 
-  if (value.triggerGlobalError) {
-    throw new FormError({
-      message: "Global error",
-    });
-  }
+    if (data.triggerFieldError) {
+      throw new FormFieldError({
+        field: "text",
+        message: "This is a field error",
+      });
+    }
 
-  if (value.triggerFieldError) {
-    throw new FormFieldError<typeof formSchema>({
-      field: "text",
-      message: "Field error",
-    });
-  }
-
-  return {
-    message:
-      "Woohoo! You submitted the form. This message comes from the server.",
-  };
-});
+    return data;
+  },
+);

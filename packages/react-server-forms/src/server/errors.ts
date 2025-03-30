@@ -1,29 +1,21 @@
-import type { z } from "zod";
-
 export class FormError extends Error {
-  message: string;
-
-  constructor({ message }: { message: string }) {
+  name = "FormError" as const;
+  constructor(public message: string) {
     super(message);
-    this.name = "FormError";
-    this.message = message;
   }
 }
 
-export class FormFieldError<Schema extends z.ZodObject<any>> extends Error {
-  message: string;
-  field: keyof z.infer<Schema>;
+export class FormFieldError extends Error {
+  name = "FormFieldError" as const;
+  constructor(public props: { field: string; message: string }) {
+    super(props.message);
+  }
 
-  constructor({
-    field,
-    message,
-  }: {
-    field: keyof z.infer<Schema>;
-    message: string;
-  }) {
-    super(message);
-    this.name = "FormFieldError";
-    this.field = field;
-    this.message = message;
+  get field() {
+    return this.props.field;
+  }
+
+  get message() {
+    return this.props.message;
   }
 }

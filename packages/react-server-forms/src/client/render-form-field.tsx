@@ -1,43 +1,55 @@
 "use client";
-import { type JSX } from "react";
-import { z } from "zod";
+import type { JSONSchema7 } from "json-schema";
+import { match } from "ts-pattern";
+import { submitConfigSchema } from "../schema/d";
+import type { BaseRenderArgs } from "./form-renderer";
 import { useReactServerForms } from "./provider";
-import type { FormField } from "../schema/zod";
 
-function safeCall<T extends (...args: any[]) => JSX.Element>(
-  renderer: T | undefined,
-  name: string,
-): T {
-  if (!renderer) {
-    throw new Error(`No renderer provided for ${name}.`);
-  }
-  return renderer;
+// Base field type with common properties
+export interface BaseField {
+  name: string;
+  label?: string;
+  required?: boolean;
+  hidden?: boolean;
 }
 
-export const rootConfigSchema = z.object({
-  label: z.string().optional(),
-  hidden: z.boolean().optional(),
-});
+// Specific field types that map to form renderer components
+export interface TextField extends BaseField {
+  type: "text" | "email" | "url";
+}
 
-export const stringConfigSchema = z.object({
-  type: z.enum(["text", "email", "url", "textarea"]).optional(),
-});
+export interface TextareaField extends BaseField {
+  type: "textarea";
+}
 
-export const enumConfigSchema = z.object({
-  type: z.enum(["select"]).optional(),
-});
+export interface NumberField extends BaseField {
+  type: "number";
+}
 
-export const selectEnumConfigSchema = z.object({
-  options: z.record(z.string(), z.string()).optional(),
-});
+export interface DateField extends BaseField {
+  type: "date";
+}
 
-export const submitConfigSchema = z.object({
-  submit: z
-    .object({
-      label: z.string().optional(),
-    })
-    .optional(),
-});
+export interface CheckboxField extends BaseField {
+  type: "checkbox";
+}
+
+export interface SelectField extends BaseField {
+  type: "select";
+  enumValues: string[];
+  options?: Record<string, string>;
+}
+
+// Union type for all possible field types
+export type FormField =
+  | TextField
+  | TextareaField
+  | NumberField
+  | DateField
+  | CheckboxField
+  | SelectField;
+// | ObjectField
+// | ArrayField;
 
 export type FieldMetadata = {
   name: string;
@@ -49,16 +61,18 @@ export type FormFieldProps = {
   field: FormField;
   defaultValue?: unknown;
   isPending: boolean;
+  errors?: string[];
 };
 
-export function RenderSubmit<TSchema extends z.ZodType>({
+export function RenderSubmit({
   schema,
   isPending,
 }: {
-  schema: TSchema;
+  schema: JSONSchema7;
   isPending: boolean;
 }) {
-  const config: unknown = JSON.parse(schema.description ?? "{}");
+  // Parse configuration from schema description if available
+  const config = schema.description ? JSON.parse(schema.description) : {};
   const submitConfig = submitConfigSchema.parse(config);
   const { formRenderer } = useReactServerForms();
 
@@ -73,187 +87,120 @@ export function RenderFormField({
   field,
   defaultValue,
   isPending,
+  errors,
 }: FormFieldProps) {
   const { formRenderer } = useReactServerForms();
 
-  if (field.hidden) {
-    return (
-      <input
-        type="hidden"
-        name={field.name}
-        defaultValue={defaultValue as string}
-        id={field.name}
-      />
-    );
-  }
+  const baseProps: BaseRenderArgs = {
+    label: field.label ?? field.name,
+    isPending,
+    required: field.required,
+  };
 
-  switch (field.type) {
-    case "string": {
-      const type = field.config?.type ?? "text";
-
-      if (type === "textarea") {
-        return safeCall(
-          formRenderer.Textarea,
-          "Textarea",
-        )({
-          label: field.label ?? field.name,
-          textareaProps: {
+  const input = match(field)
+    .with({ hidden: true }, () => {
+      return (
+        <input
+          type="hidden"
+          name={field.name}
+          defaultValue={defaultValue as string}
+          id={field.name}
+        />
+      );
+    })
+    .with({ type: "text" }, { type: "email" }, { type: "url" }, (field) => {
+      return (
+        <formRenderer.Text
+          {...baseProps}
+          inputProps={{
+            type: field.type,
             name: field.name,
             defaultValue: defaultValue as string,
             id: field.name,
-          },
-          isPending,
-        });
-      }
-
-      return safeCall(
-        formRenderer.Text,
-        "Text",
-      )({
-        label: field.label ?? field.name,
-        inputProps: {
-          type,
-          name: field.name,
-          defaultValue: defaultValue as string,
-          id: field.name,
-        },
-        isPending,
-      });
-    }
-
-    case "number": {
-      return safeCall(
-        formRenderer.Number,
-        "Number",
-      )({
-        label: field.label ?? field.name,
-        inputProps: {
-          type: "number",
-          name: field.name,
-          defaultValue: defaultValue as number,
-          id: field.name,
-        },
-        isPending,
-      });
-    }
-
-    case "boolean": {
-      return safeCall(
-        formRenderer.Checkbox,
-        "Checkbox",
-      )({
-        label: field.label ?? field.name,
-        inputProps: {
-          type: "checkbox",
-          name: field.name,
-          defaultChecked: defaultValue as boolean,
-          id: field.name,
-        },
-        isPending,
-      });
-    }
-
-    case "date": {
-      return safeCall(
-        formRenderer.Date,
-        "Date",
-      )({
-        label: field.label ?? field.name,
-        inputProps: {
-          type: "date",
-          name: field.name,
-          defaultValue: defaultValue as string,
-          id: field.name,
-        },
-        isPending,
-      });
-    }
-
-    case "enum": {
-      if (!field.enumValues) {
-        throw new Error(`Enum field "${field.name}" must have enumValues.`);
-      }
-
-      return safeCall(
-        formRenderer.Select,
-        "Select",
-      )({
-        label: field.label ?? field.name,
-        selectProps: {
-          name: field.name,
-          defaultValue: defaultValue as string,
-          id: field.name,
-        },
-        options: [
-          {
-            label: "Select an option",
-            optionProps: { value: "", disabled: true },
-          },
-          ...field.enumValues.map((value) => ({
-            label: field.config?.options?.[value] ?? value,
-            optionProps: { value },
-          })),
-        ],
-        isPending,
-      });
-    }
-
-    case "object": {
-      if (!field.fields) {
-        throw new Error(`Object field "${field.name}" must have fields.`);
-      }
-
-      return (
-        <div>
-          {field.label && <label>{field.label}</label>}
-          <div>
-            {Object.entries(field.fields).map(([key, subField]) => (
-              <RenderFormField
-                key={key}
-                field={subField}
-                defaultValue={
-                  defaultValue
-                    ? (defaultValue as Record<string, unknown>)[key]
-                    : undefined
-                }
-                isPending={isPending}
-              />
-            ))}
-          </div>
-        </div>
+            required: field.required,
+          }}
+        />
       );
-    }
-
-    case "array": {
-      if (!field.items) {
-        throw new Error(`Array field "${field.name}" must have items.`);
-      }
-
-      const items = field.items;
-
+    })
+    .with({ type: "textarea" }, (field) => {
       return (
-        <div>
-          {field.label && <label>{field.label}</label>}
-          <div>
-            {(Array.isArray(defaultValue) ? defaultValue : []).map(
-              (value: unknown, index: number) => (
-                <RenderFormField
-                  key={index}
-                  field={{
-                    ...items,
-                    name: `${field.name}[${index}]`,
-                  }}
-                  defaultValue={value}
-                  isPending={isPending}
-                />
-              ),
-            )}
-          </div>
-        </div>
+        <formRenderer.Textarea
+          {...baseProps}
+          textareaProps={{
+            name: field.name,
+            defaultValue: defaultValue as string,
+            id: field.name,
+            required: field.required,
+          }}
+        />
       );
-    }
+    })
+    .with({ type: "number" }, (field) => {
+      return (
+        <formRenderer.Number
+          {...baseProps}
+          inputProps={{
+            type: field.type,
+            name: field.name,
+            defaultValue: defaultValue as string,
+            id: field.name,
+            required: field.required,
+          }}
+        />
+      );
+    })
+    .with({ type: "date" }, (field) => {
+      return (
+        <formRenderer.Date
+          {...baseProps}
+          inputProps={{
+            type: field.type,
+            name: field.name,
+            defaultValue: defaultValue
+              ? new Date(defaultValue as string).toISOString().split("T")[0]
+              : "",
+            id: field.name,
+            required: field.required,
+          }}
+        />
+      );
+    })
+    .with({ type: "checkbox" }, (field) => {
+      return (
+        <formRenderer.Checkbox
+          {...baseProps}
+          inputProps={{
+            name: field.name,
+            type: "checkbox",
+            defaultChecked: !!defaultValue,
+          }}
+        />
+      );
+    })
+    .with({ type: "select" }, (field) => {
+      const emptyOption = {
+        label: "Select an option",
+        optionProps: { value: "", disabled: field.required },
+      };
+      return (
+        <formRenderer.Select
+          {...baseProps}
+          selectProps={{
+            name: field.name,
+            required: field.required,
+            defaultValue: defaultValue ? (defaultValue as string) : undefined,
+          }}
+          options={[
+            emptyOption,
+            ...field.enumValues.map((value) => ({
+              label: field.options?.[value] ?? value,
+              optionProps: { value },
+            })),
+          ]}
+        />
+      );
+    })
+    .exhaustive();
 
-    default:
-      throw new Error(`Unsupported field type: ${field.type}`);
-  }
+  return <formRenderer.Fieldset errors={errors}>{input}</formRenderer.Fieldset>;
 }

@@ -1,5 +1,7 @@
 import type { JSONSchema7 } from "json-schema";
 import type { FormError, FormFieldError } from "./errors";
+import { log } from "debug";
+import { jsonSchemaToFormFields } from "../client/json-schema";
 
 export interface SchemaValidator<T> {
   validate: (data: unknown) => ValidationResult<T>;
@@ -20,6 +22,7 @@ export type ServerFunctionResponse<Result> =
       state: "error";
       formErrors: string[];
       fieldErrors: Record<string, string[]>;
+      values: Partial<Result>;
     }
   | {
       state: "success";
@@ -55,14 +58,42 @@ export async function handleFormAction<T, Result = T>(
   formData: FormData,
   handler: Handler<T, Result>,
 ): Promise<ServerFunctionResponse<Result>> {
-  const validationResult = schema.validate(formData);
+  const formDataObject: Record<
+    string,
+    string | number | File | boolean | Date | undefined
+  > = Object.fromEntries(formData.entries());
+  // properly cast formDataObject to T.
+  const formFields = jsonSchemaToFormFields(schema.getJsonSchema());
+  for (const field of formFields) {
+    if (field.type === "number") {
+      formDataObject[field.name] = Number(formDataObject[field.name]);
+    }
+    if (field.type === "checkbox") {
+      formDataObject[field.name] = formDataObject[field.name] === "on";
+    }
 
+    if (field.type === "select" && formDataObject[field.name] === "") {
+      formDataObject[field.name] = undefined;
+    }
+
+    if (field.type === "date") {
+      formDataObject[field.name] = new Date(
+        formDataObject[field.name] as string,
+      );
+    }
+  }
+  const validationResult = schema.validate(formDataObject);
+
+  log("validationResult", validationResult);
   if (!validationResult.success) {
-    return {
+    const response = {
       state: "error",
       formErrors: validationResult.errors?.formErrors || [],
       fieldErrors: validationResult.errors?.fieldErrors || {},
-    };
+      values: formDataObject as Partial<Result>,
+    } as const;
+    log("validation error, returning response", response);
+    return response;
   }
 
   try {
@@ -86,6 +117,7 @@ export async function handleFormAction<T, Result = T>(
           fieldErrors: {
             [fieldError.field]: [fieldError.message],
           } as Record<string, string[]>,
+          values: formDataObject as Partial<Result>,
         };
       }
 
@@ -95,6 +127,7 @@ export async function handleFormAction<T, Result = T>(
           formErrors: [formError.message],
           fieldErrors: {},
           state: "error",
+          values: formDataObject as Partial<Result>,
         };
       }
 
@@ -107,6 +140,7 @@ export async function handleFormAction<T, Result = T>(
       formErrors: ["An unexpected error occurred"],
       fieldErrors: {},
       state: "error",
+      values: formDataObject as Partial<Result>,
     };
   }
 }

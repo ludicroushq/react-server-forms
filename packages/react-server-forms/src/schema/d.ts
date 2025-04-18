@@ -1,12 +1,30 @@
-import type { z } from "zod";
+import { z } from "zod";
 import type { FormRendererOptions } from "../client/form-renderer";
-import type {
-  enumConfigSchema,
-  rootConfigSchema,
-  selectEnumConfigSchema,
-  stringConfigSchema,
-  submitConfigSchema,
-} from "../client/render-form-field";
+
+export const rootConfigSchema = z.object({
+  label: z.string().optional(),
+  hidden: z.boolean().optional(),
+});
+
+export const stringConfigSchema = z.object({
+  type: z.enum(["text", "email", "url", "textarea"]).optional(),
+});
+
+export const enumConfigSchema = z.object({
+  type: z.enum(["select"]).optional(),
+});
+
+export const selectEnumConfigSchema = z.object({
+  options: z.record(z.string(), z.string()).optional(),
+});
+
+export const submitConfigSchema = z.object({
+  submit: z
+    .object({
+      label: z.string().optional(),
+    })
+    .optional(),
+});
 
 type RootConfig = z.infer<typeof rootConfigSchema>;
 type StringConfig = RootConfig & z.infer<typeof stringConfigSchema>;
@@ -22,4 +40,7 @@ export const d = {
   Checkbox: (p: RootConfig) => JSON.stringify(p),
   Select: (p: EnumConfig & SelectEnumConfig) => JSON.stringify(p),
   Form: (p: FormConfig) => JSON.stringify(p),
-} satisfies Record<Exclude<keyof FormRendererOptions, "Submit"> | "Form", any>;
+} satisfies Record<
+  Exclude<keyof FormRendererOptions, "Submit" | "Fieldset"> | "Form",
+  any
+>;

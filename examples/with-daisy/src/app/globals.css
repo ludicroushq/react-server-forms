@@ -1,6 +1,8 @@
 @import "tailwindcss";
 
 @plugin "@tailwindcss/typography";
-@plugin "daisyui";
+@plugin "daisyui" {
+  themes: light --default;
+}
 
-@source "../node_modules/@react-server-forms/daisy-ui/dist";
+@source "../../node_modules/@react-server-forms/daisy-ui/dist";

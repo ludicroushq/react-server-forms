@@ -6,9 +6,10 @@ import {
 } from "react-server-forms/server";
 import { formSchema } from "./schema";
 import type { z } from "zod";
+import { zodForm } from "react-server-forms/schema";
 
 export const formAction = createFormAction(
-  formSchema,
+  zodForm(formSchema),
   async ({ data }: { data: z.infer<typeof formSchema> }) => {
     if (data.triggerGlobalError) {
       throw new FormError("This is a global error");

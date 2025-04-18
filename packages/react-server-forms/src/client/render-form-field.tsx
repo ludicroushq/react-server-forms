@@ -182,20 +182,28 @@ export function RenderFormField({
         label: "Select an option",
         optionProps: { value: "", disabled: field.required },
       };
+      const valueToSelect = defaultValue ? String(defaultValue) : "";
+
       return (
         <formRenderer.Select
           {...baseProps}
+          key={`${field.name}-${valueToSelect}`}
           selectProps={{
             name: field.name,
             required: field.required,
-            defaultValue: defaultValue ? (defaultValue as string) : undefined,
+            defaultValue: valueToSelect,
           }}
           options={[
             emptyOption,
-            ...field.enumValues.map((value) => ({
-              label: field.options?.[value] ?? value,
-              optionProps: { value },
-            })),
+            ...field.enumValues.map((enumValue) => {
+              const optionValue = String(enumValue);
+              return {
+                label: field.options?.[optionValue] ?? optionValue,
+                optionProps: {
+                  value: optionValue,
+                },
+              };
+            }),
           ]}
         />
       );

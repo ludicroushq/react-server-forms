@@ -1,86 +1,74 @@
 "use client";
-import {
-  getFormProps,
-  useForm,
-  type DefaultValue,
-  type FieldMetadata,
-  type Submission,
-} from "@conform-to/react";
-import { getZodConstraint, parseWithZod } from "@conform-to/zod";
-import { startTransition, useActionState, useEffect } from "react";
-import type { z } from "zod";
-import type { ServerFunctionResult } from "../server/actions";
+import { useActionState, useEffect } from "react";
+import type { SchemaValidator, ServerFunction } from "../server/actions";
+import { log } from "../utils/log";
 import { useReactServerForms } from "./provider";
 import { RenderFormField, RenderSubmit } from "./render-form-field";
+import { jsonSchemaToFormFields } from "./json-schema";
 
-export function RenderForm<Schema extends z.ZodObject<any>, Result>({
+export type DefaultValue<T> = {
+  [K in keyof T]?: T[K];
+};
+
+export function RenderForm<Schema, Result = Schema>({
   action,
   schema,
   onSuccess,
   defaultValue,
 }: {
-  action: (
-    prevState: unknown,
-    formData: FormData,
-  ) => Promise<ServerFunctionResult<Result>>;
-  schema: Schema;
+  action: ServerFunction<Schema, Result>;
+  schema: SchemaValidator<Schema>;
   onSuccess?: (result: Result) => void;
-  defaultValue?: DefaultValue<z.infer<Schema>>;
+  defaultValue?: DefaultValue<Schema>;
 }) {
-  const [lastResult, execute, isPending] = useActionState(action, undefined);
-  const [form, fields] = useForm<z.infer<Schema>>({
-    lastResult: lastResult?._form,
-    constraint: getZodConstraint(schema),
-    defaultValue,
-    // https://github.com/edmundhung/conform/discussions/606#discussioncomment-9680781
-    onSubmit(event, { formData }) {
-      event.preventDefault();
-
-      startTransition(async () => {
-        await execute(formData);
-      });
-    },
-    onValidate({ formData }) {
-      return parseWithZod(formData, {
-        schema,
-      }) as Submission<Schema, string[], Schema>;
-    },
-    shouldValidate: "onBlur",
-    shouldRevalidate: "onInput",
-  });
   const { formRenderer } = useReactServerForms();
+  const [prevState, dispatch, isPending] = useActionState(action, null);
 
   useEffect(() => {
-    if (isPending) {
-      return;
+    if (prevState?.state === "success" && onSuccess) {
+      onSuccess(prevState.result as Result);
     }
+  }, [onSuccess, prevState]);
 
-    if (!lastResult || lastResult.state === "error") {
-      return;
-    }
+  const jsonSchema = schema.getJsonSchema();
+  log("jsonSchema", jsonSchema);
 
-    onSuccess?.(lastResult.result);
-  }, [isPending, lastResult, onSuccess]);
+  const formFields = jsonSchemaToFormFields(jsonSchema);
+
+  log("formFields", formFields);
+
+  log("prevState", prevState);
 
   return (
     <formRenderer.Form
-      key={form.key}
-      errors={form.errors}
       formProps={{
-        action: execute,
-        ...getFormProps(form),
+        action: dispatch,
       }}
+      errors={
+        prevState?.state === "error" && prevState.formErrors.length > 0
+          ? prevState.formErrors
+          : undefined
+      }
     >
-      {Object.keys(schema.shape).map((key) => (
+      {formFields.map((field) => (
         <RenderFormField
-          key={key}
-          fields={fields as Record<keyof Schema["shape"], FieldMetadata>}
-          schema={schema}
-          fieldKey={key as keyof typeof schema.shape}
+          key={field.name}
+          field={field}
+          defaultValue={
+            prevState?.state === "error"
+              ? prevState.values[field.name as keyof Result]
+              : defaultValue?.[field.name as keyof Schema]
+          }
           isPending={isPending}
+          errors={
+            prevState?.state === "error" &&
+            (prevState.fieldErrors[field.name as string]?.length || 0) > 0
+              ? prevState.fieldErrors[field.name as string]
+              : undefined
+          }
         />
       ))}
-      <RenderSubmit schema={schema} isPending={isPending} />
+      <RenderSubmit schema={jsonSchema} isPending={isPending} />
     </formRenderer.Form>
   );
 }

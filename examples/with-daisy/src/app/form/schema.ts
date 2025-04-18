@@ -29,7 +29,18 @@ export const formSchema = z
         },
       }),
     ),
-    nativeSelect: z.nativeEnum(NativeEnum),
+    nativeSelect: z
+      .nativeEnum(NativeEnum)
+      .optional()
+      .describe(
+        d.Select({
+          options: {
+            a: "A",
+            b: "B",
+            c: "C",
+          },
+        }),
+      ),
 
     triggerGlobalError: z
       .boolean()

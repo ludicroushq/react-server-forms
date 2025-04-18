@@ -1,81 +1,78 @@
 "use client";
-import {
-  getInputProps,
-  getSelectProps,
-  getTextareaProps,
-  type FieldMetadata,
-} from "@conform-to/react";
-import _ from "lodash";
-import { type JSX } from "react";
-import { z, type ZodFirstPartySchemaTypes } from "zod";
+import type { JSONSchema7 } from "json-schema";
+import { match } from "ts-pattern";
+import { submitConfigSchema } from "../schema/d";
+import type { BaseRenderArgs } from "./form-renderer";
 import { useReactServerForms } from "./provider";
 
-function safeCall<T extends (...args: any[]) => JSX.Element>(
-  renderer: T | undefined,
-  name: string,
-): T {
-  if (!renderer) {
-    throw new Error(`No renderer provided for ${name}.`);
-  }
-  return renderer;
+// Base field type with common properties
+export interface BaseField {
+  name: string;
+  label?: string;
+  required?: boolean;
+  hidden?: boolean;
 }
 
-function getStringInputType(schema: z.ZodString) {
-  const checks = schema._def.checks ?? [];
-  for (const check of checks) {
-    if (check.kind === "email") {
-      return "email" as const;
-    }
-    if (check.kind === "url") {
-      return "url" as const;
-    }
-  }
-  return "text" as const;
+// Specific field types that map to form renderer components
+export interface TextField extends BaseField {
+  type: "text" | "email" | "url";
 }
 
-export const rootConfigSchema = z.object({
-  label: z.string().optional(),
-  hidden: z.boolean().optional(),
-});
+export interface TextareaField extends BaseField {
+  type: "textarea";
+}
 
-export const stringConfigSchema = z.object({
-  type: z.enum(["text", "email", "url", "textarea"]).optional(),
-});
+export interface NumberField extends BaseField {
+  type: "number";
+}
 
-export const enumConfigSchema = z.object({
-  type: z.enum(["select"]).optional(),
-});
+export interface DateField extends BaseField {
+  type: "date";
+}
 
-export const selectEnumConfigSchema = z.object({
-  options: z.record(z.string(), z.string()).optional(),
-});
+export interface CheckboxField extends BaseField {
+  type: "checkbox";
+}
 
-export const submitConfigSchema = z.object({
-  submit: z
-    .object({
-      label: z.string().optional(),
-    })
-    .optional(),
-});
+export interface SelectField extends BaseField {
+  type: "select";
+  enumValues: string[];
+  options?: Record<string, string>;
+}
 
-export type FormFieldProps<
-  TSchema extends z.ZodObject<any>,
-  TKey extends keyof TSchema["shape"],
-> = {
-  fields: Record<keyof TSchema["shape"], FieldMetadata>;
-  schema: TSchema;
-  fieldKey: TKey;
-  isPending: boolean;
+// Union type for all possible field types
+export type FormField =
+  | TextField
+  | TextareaField
+  | NumberField
+  | DateField
+  | CheckboxField
+  | SelectField;
+// | ObjectField
+// | ArrayField;
+
+export type FieldMetadata = {
+  name: string;
+  value?: string | number | boolean;
+  id: string;
 };
 
-export function RenderSubmit<
-  TSchema extends z.ZodObject<any>,
-  TKey extends keyof TSchema["shape"],
->({
+export type FormFieldProps = {
+  field: FormField;
+  defaultValue?: unknown;
+  isPending: boolean;
+  errors?: string[];
+};
+
+export function RenderSubmit({
   schema,
   isPending,
-}: Pick<FormFieldProps<TSchema, TKey>, "schema" | "isPending">) {
-  const config: unknown = JSON.parse(schema.description ?? "{}");
+}: {
+  schema: JSONSchema7;
+  isPending: boolean;
+}) {
+  // Parse configuration from schema description if available
+  const config = schema.description ? JSON.parse(schema.description) : {};
   const submitConfig = submitConfigSchema.parse(config);
   const { formRenderer } = useReactServerForms();
 
@@ -86,218 +83,132 @@ export function RenderSubmit<
   });
 }
 
-export function RenderFormField<
-  TSchema extends z.ZodObject<any>,
-  TKey extends keyof TSchema["shape"],
->({ fields, schema, fieldKey, isPending }: FormFieldProps<TSchema, TKey>) {
-  const field = fields[fieldKey];
+export function RenderFormField({
+  field,
+  defaultValue,
+  isPending,
+  errors,
+}: FormFieldProps) {
   const { formRenderer } = useReactServerForms();
 
-  function getFieldSchema(
-    fieldSchema: ZodFirstPartySchemaTypes,
-    { optional, defaultValue }: { optional: boolean; defaultValue: any },
-  ) {
-    if (fieldSchema._def.typeName === "ZodOptional") {
-      return getFieldSchema(fieldSchema._def.innerType, {
-        optional: true,
-        defaultValue,
-      });
-    }
-    if (fieldSchema._def.typeName === "ZodDefault") {
-      return getFieldSchema(fieldSchema._def.innerType, {
-        optional,
-        defaultValue: fieldSchema._def.defaultValue,
-      });
-    }
+  const baseProps: BaseRenderArgs = {
+    label: field.label ?? field.name,
+    isPending,
+    required: field.required,
+  };
 
-    return { fieldSchema, optional, defaultValue };
-  }
-
-  const { fieldSchema } = getFieldSchema(schema.shape[fieldKey], {
-    optional: false,
-    defaultValue: undefined,
-  });
-
-  // If it's an object with nested fields, bail out for now
-  if (fieldSchema._def.typeName === "ZodObject") {
-    if (Object.keys((fieldSchema as z.ZodObject<any>).shape).length > 1) {
-      throw new Error("Nested objects are not supported yet");
-    }
-  }
-
-  const config: unknown = JSON.parse(fieldSchema.description ?? "{}");
-  const rootConfig = rootConfigSchema.parse(config);
-
-  const label = rootConfig.label ?? field.name;
-  const error = field.errors?.[0];
-
-  if (rootConfig.hidden) {
-    return (
-      <input
-        type="hidden"
-        name={field.name}
-        defaultValue={field.value as string}
-        key={field.key ?? field.id}
-      />
-    );
-  }
-
-  // Handle ZodString
-  if (fieldSchema._def.typeName === "ZodString") {
-    const stringSchema = fieldSchema as z.ZodString;
-    const derivedType =
-      stringConfigSchema.parse(config).type ?? getStringInputType(stringSchema);
-
-    // If user specified "textarea"
-    if (derivedType === "textarea") {
-      return safeCall(
-        formRenderer.Textarea,
-        "Textarea",
-      )({
-        label,
-        error,
-        textareaProps: _.omit(getTextareaProps(field, {}), "key"),
-        isPending,
-        key: field.key ?? field.id,
-      });
-    }
-
-    // Otherwise treat as standard text input
-    return safeCall(
-      formRenderer.Text,
-      "Text",
-    )({
-      label,
-      error,
-      inputProps: _.omit(getInputProps(field, { type: derivedType }), "key"),
-      isPending,
-      key: field.key ?? field.id,
-    });
-  }
-
-  // Handle ZodNumber
-  if (fieldSchema._def.typeName === "ZodNumber") {
-    return safeCall(
-      formRenderer.Number,
-      "Number",
-    )({
-      label,
-      error,
-      inputProps: _.omit(getInputProps(field, { type: "number" }), "key"),
-      isPending,
-      key: field.key ?? field.id,
-    });
-  }
-
-  // Handle ZodBoolean
-  if (fieldSchema._def.typeName === "ZodBoolean") {
-    return safeCall(
-      formRenderer.Checkbox,
-      "Checkbox",
-    )({
-      label,
-      error,
-      inputProps: _.omit(getInputProps(field, { type: "checkbox" }), "key"),
-      isPending,
-      key: field.key ?? field.id,
-    });
-  }
-
-  // Handle ZodDate
-  if (fieldSchema._def.typeName === "ZodDate") {
-    return safeCall(
-      formRenderer.Date,
-      "Date",
-    )({
-      label,
-      error,
-      inputProps: _.omit(getInputProps(field, { type: "date" }), "key"),
-      isPending,
-      key: field.key ?? field.id,
-    });
-  }
-
-  // Handle ZodEnum
-  if (fieldSchema._def.typeName === "ZodEnum") {
-    const enumSchema = fieldSchema as z.ZodEnum<any>;
-    const derivedType = enumConfigSchema.parse(config).type ?? "select";
-    if (derivedType !== "select") {
-      throw new Error(
-        `ZodEnum field "${field.name}" must use config.type = "select" or provide a custom renderer.`,
+  const input = match(field)
+    .with({ hidden: true }, () => {
+      return (
+        <input
+          type="hidden"
+          name={field.name}
+          defaultValue={defaultValue as string}
+          id={field.name}
+        />
       );
-    }
-    const selectEnumConfig = selectEnumConfigSchema.parse(config);
-    return safeCall(
-      formRenderer.Select,
-      "Select",
-    )({
-      label,
-      error,
-      selectProps: {
-        ..._.omit(getSelectProps(field, {}), "key"),
-        defaultValue: "",
-      },
-      options: [
-        {
-          key: "",
-          optionProps: { value: "", disabled: true },
-          label: "Select an option",
-        },
-        ...enumSchema.options.map((opt: string) => ({
-          key: opt,
-          optionProps: { value: opt },
-          label: selectEnumConfig.options?.[opt] ?? opt,
-        })),
-      ],
-      isPending,
-      key: field.key ?? field.id,
-    });
-  }
-
-  // Handle ZodNativeEnum
-  if (fieldSchema._def.typeName === "ZodNativeEnum") {
-    const nativeEnumSchema = fieldSchema as z.ZodNativeEnum<any>;
-    const derivedType = enumConfigSchema.parse(config).type ?? "select";
-    const values = Object.entries(nativeEnumSchema.enum);
-    if (!values.every(([k]) => typeof k === "string")) {
-      throw new Error(
-        `ZodNativeEnum for "${field.name}" must contain only string values.`,
+    })
+    .with({ type: "text" }, { type: "email" }, { type: "url" }, (field) => {
+      return (
+        <formRenderer.Text
+          {...baseProps}
+          inputProps={{
+            type: field.type,
+            name: field.name,
+            defaultValue: defaultValue as string,
+            id: field.name,
+            required: field.required,
+          }}
+        />
       );
-    }
-
-    if (derivedType !== "select") {
-      throw new Error(
-        `ZodNativeEnum field "${field.name}" must use config.type = "select" or provide a custom renderer.`,
+    })
+    .with({ type: "textarea" }, (field) => {
+      return (
+        <formRenderer.Textarea
+          {...baseProps}
+          textareaProps={{
+            name: field.name,
+            defaultValue: defaultValue as string,
+            id: field.name,
+            required: field.required,
+          }}
+        />
       );
-    }
-    return safeCall(
-      formRenderer.Select,
-      "Select",
-    )({
-      label,
-      error,
-      selectProps: {
-        ..._.omit(getSelectProps(field, {}), "key"),
-        defaultValue: "",
-      },
-      options: [
-        {
-          key: "",
-          optionProps: { value: "", disabled: true },
-          label: "Select an option",
-        },
-        ...values.map(([k, v]) => ({
-          key: k,
-          optionProps: { value: v as string },
-          label: k,
-        })),
-      ],
-      isPending,
-      key: field.key ?? field.id,
-    });
-  }
+    })
+    .with({ type: "number" }, (field) => {
+      return (
+        <formRenderer.Number
+          {...baseProps}
+          inputProps={{
+            type: field.type,
+            name: field.name,
+            defaultValue: defaultValue as string,
+            id: field.name,
+            required: field.required,
+          }}
+        />
+      );
+    })
+    .with({ type: "date" }, (field) => {
+      return (
+        <formRenderer.Date
+          {...baseProps}
+          inputProps={{
+            type: field.type,
+            name: field.name,
+            defaultValue: defaultValue
+              ? new Date(defaultValue as string).toISOString().split("T")[0]
+              : "",
+            id: field.name,
+            required: field.required,
+          }}
+        />
+      );
+    })
+    .with({ type: "checkbox" }, (field) => {
+      return (
+        <formRenderer.Checkbox
+          {...baseProps}
+          inputProps={{
+            name: field.name,
+            type: "checkbox",
+            defaultChecked: !!defaultValue,
+          }}
+        />
+      );
+    })
+    .with({ type: "select" }, (field) => {
+      const emptyOption = {
+        label: "Select an option",
+        optionProps: { value: "", disabled: field.required },
+      };
+      const valueToSelect = defaultValue ? String(defaultValue) : "";
 
-  throw new Error(
-    `Unsupported Zod type for field "${field.name}": ${fieldSchema._def.typeName}.`,
-  );
+      return (
+        <formRenderer.Select
+          {...baseProps}
+          key={`${field.name}-${valueToSelect}`}
+          selectProps={{
+            name: field.name,
+            required: field.required,
+            defaultValue: valueToSelect,
+          }}
+          options={[
+            emptyOption,
+            ...field.enumValues.map((enumValue) => {
+              const optionValue = String(enumValue);
+              return {
+                label: field.options?.[optionValue] ?? optionValue,
+                optionProps: {
+                  value: optionValue,
+                },
+              };
+            }),
+          ]}
+        />
+      );
+    })
+    .exhaustive();
+
+  return <formRenderer.Fieldset errors={errors}>{input}</formRenderer.Fieldset>;
 }

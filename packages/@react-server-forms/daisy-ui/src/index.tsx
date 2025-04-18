@@ -4,7 +4,7 @@ import { createFormRenderer as createFormRendererOriginal } from "react-server-f
 export function createFormRenderer(): FormRenderer {
   return createFormRendererOriginal({
     Form: ({ formProps, children, errors }) => (
-      <form {...formProps}>
+      <form {...formProps} className="">
         {errors && (
           <div role="alert" className="alert alert-error mb-2">
             <span>{errors.join(", ")}</span>
@@ -13,97 +13,61 @@ export function createFormRenderer(): FormRenderer {
         {children}
       </form>
     ),
-    Text: ({ label, error, inputProps, key }) => (
-      <label className="form-control w-full">
-        <div className="label">
-          <span className="label-text">{label}</span>
-        </div>
-        <input
-          {...inputProps}
-          key={key}
-          className="input input-bordered w-full"
-        />
-        <div className="label">
-          {error && <span className="label-text-alt text-error">{error}</span>}
-        </div>
-      </label>
+    Fieldset: ({ children, errors }) => (
+      <fieldset className="fieldset">
+        {children}
+        <label className="label flex justify-between">
+          {errors && <span className="text-error">{errors.join(", ")}</span>}
+        </label>
+      </fieldset>
     ),
-    Textarea: ({ label, error, textareaProps, key }) => (
-      <label className="form-control w-full">
-        <div className="label">
-          <span className="label-text">{label}</span>
-        </div>
-        <textarea
-          key={key}
-          {...textareaProps}
-          className="textarea textarea-bordered"
-        />
+    Text: ({ label, inputProps }) => (
+      <>
+        <label className="fieldset-label">{label}</label>
 
-        <div className="label">
-          {error && <span className="label-text-alt text-error">{error}</span>}
-        </div>
-      </label>
+        <input className="input w-full" placeholder={label} {...inputProps} />
+      </>
     ),
-    Number: ({ label, error, inputProps, key }) => (
-      <label className="form-control w-full">
-        <div className="label">
-          <span className="label-text">{label}</span>
-        </div>
-        <input
-          {...inputProps}
-          key={key}
-          className="input input-bordered w-full"
-        />
-        <div className="label">
-          {error && <span className="label-text-alt text-error">{error}</span>}
-        </div>
-      </label>
+    Textarea: ({ label, textareaProps }) => (
+      <>
+        <label className="fieldset-label">{label}</label>
+        <textarea {...textareaProps} className="textarea w-full" />
+      </>
     ),
-    Date: ({ label, error, inputProps, key }) => (
-      <label className="form-control w-full">
-        <div className="label">
-          <span className="label-text">{label}</span>
-        </div>
-        <input
-          key={key}
-          {...inputProps}
-          className="input input-bordered w-full"
-        />
-        <div className="label">
-          {error && <span className="label-text-alt text-error">{error}</span>}
-        </div>
-      </label>
+    Number: ({ label, inputProps }) => (
+      <>
+        <label className="fieldset-label">{label}</label>
+        <input className="input w-full" placeholder={label} {...inputProps} />
+      </>
     ),
-    Checkbox: ({ label, error, inputProps }) => (
-      <label className="form-control w-full">
-        <div className="label justify-normal gap-4">
-          <input {...inputProps} className="checkbox" />
-          <span className="label-text">{label}</span>
-        </div>
-        <div className="label">
-          {error && <span className="label-text-alt text-error">{error}</span>}
-        </div>
-      </label>
+    Date: ({ label, inputProps }) => (
+      <>
+        <label className="fieldset-label">{label}</label>
+        <input className="input w-full" placeholder={label} {...inputProps} />
+      </>
     ),
-    Select: ({ label, error, selectProps, options, key }) => (
-      <label className="form-control w-full">
-        <div className="label">
-          <span className="label-text">{label}</span>
-        </div>
-        <select key={key} {...selectProps} className="select select-bordered">
-          {options.map(({ key, optionProps, label }) => (
-            <option key={key} {...optionProps}>
+    Checkbox: ({ label, inputProps }) => (
+      <>
+        <label className="fieldset-label">
+          <input type="checkbox" {...inputProps} className="checkbox" />
+          {label}
+        </label>
+      </>
+    ),
+    Select: ({ label, selectProps, options }) => (
+      <>
+        <label className="fieldset-label">{label}</label>
+        <select {...selectProps} className="select w-full">
+          {options.map(({ optionProps, label }) => (
+            <option key={label} {...optionProps}>
               {label}
             </option>
           ))}
         </select>
-        <div className="label">
-          {error && <span className="label-text-alt text-error">{error}</span>}
-        </div>
-      </label>
+      </>
     ),
     Submit: ({ buttonProps, isPending, label }) => (
-      <button {...buttonProps} className="btn btn-primary" disabled={isPending}>
+      <button {...buttonProps} className="btn  block" disabled={isPending}>
         {isPending && <span className="loading loading-spinner loading-sm" />}
         {label}
       </button>
